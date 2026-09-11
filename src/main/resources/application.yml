@@ -24,3 +24,6 @@ logging:
   level:
     com.example.demo: DEBUG
     org.hibernate.SQL: DEBUG
+jwt:
+    secret: my-super-secret-key-for-jwt-demo-please-change-in-production-1234567890
+    expiration: 86400000
