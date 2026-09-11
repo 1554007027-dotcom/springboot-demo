@@ -1,0 +1,35 @@
+### 创建用户
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "username": "zhangsan",
+  "email": "zhangsan@example.com"
+}
+
+### 查询所有用户
+GET http://localhost:8080/api/users
+
+### 查询单个用户
+GET http://localhost:8080/api/users/1
+
+### 更新用户
+PUT http://localhost:8080/api/users/1
+Content-Type: application/json
+
+{
+  "username": "lisi",
+  "email": "lisi@example.com"
+}
+
+### 删除用户
+DELETE http://localhost:8080/api/users/1
+
+### 测试校验（故意填错）
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "username": "",
+  "email": "abc"
+}
