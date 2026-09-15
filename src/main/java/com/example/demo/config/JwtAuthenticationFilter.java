@@ -38,7 +38,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
 
-        if (!jwtUtil.validateToken(token)) {
+        // 业务接口只接受 accessToken
+        if (!jwtUtil.validateToken(token, "access")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -46,7 +47,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String username = jwtUtil.getUsernameFromToken(token);
         String role = jwtUtil.getRoleFromToken(token);
 
-        // 关键：把角色变成权限（ROLE_ 前缀是 Spring Security 约定）
         List<SimpleGrantedAuthority> authorities =
                 List.of(new SimpleGrantedAuthority("ROLE_" + role));
 

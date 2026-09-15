@@ -13,51 +13,54 @@ class JwtUtilTest {
     @BeforeEach
     void setUp() {
         jwtUtil = new JwtUtil();
-        // 手动注入 @Value 字段（因为没有 Spring 容器）
         ReflectionTestUtils.setField(jwtUtil, "secret",
                 "my-super-secret-key-for-jwt-demo-please-change-in-production-1234567890");
-        ReflectionTestUtils.setField(jwtUtil, "expiration", 86400000L);
+        ReflectionTestUtils.setField(jwtUtil, "accessExpiration", 1800000L);
+        ReflectionTestUtils.setField(jwtUtil, "refreshExpiration", 604800000L);
     }
 
     @Test
-    void generateToken_shouldReturnNonNullToken() {
-        String token = jwtUtil.generateToken("admin", "ADMIN");
+    void generateAccessToken_shouldHaveTypeAccess() {
+        String token = jwtUtil.generateAccessToken("admin", "ADMIN");
         assertThat(token).isNotNull();
-        assertThat(token).isNotEmpty();
-        // JWT 是三段用 . 分隔
         assertThat(token.split("\\.")).hasSize(3);
+        assertThat(jwtUtil.getTypeFromToken(token)).isEqualTo("access");
     }
 
     @Test
-    void generateToken_shouldContainUsername() {
-        String token = jwtUtil.generateToken("admin", "ADMIN");
-        String username = jwtUtil.getUsernameFromToken(token);
-        assertThat(username).isEqualTo("admin");
+    void generateRefreshToken_shouldHaveTypeRefresh() {
+        String token = jwtUtil.generateRefreshToken("admin", "ADMIN");
+        assertThat(jwtUtil.getTypeFromToken(token)).isEqualTo("refresh");
     }
 
     @Test
-    void generateToken_shouldContainRole() {
-        String token = jwtUtil.generateToken("admin", "ADMIN");
-        String role = jwtUtil.getRoleFromToken(token);
-        assertThat(role).isEqualTo("ADMIN");
+    void accessToken_shouldContainUsernameAndRole() {
+        String token = jwtUtil.generateAccessToken("admin", "ADMIN");
+        assertThat(jwtUtil.getUsernameFromToken(token)).isEqualTo("admin");
+        assertThat(jwtUtil.getRoleFromToken(token)).isEqualTo("ADMIN");
     }
 
     @Test
-    void validateToken_shouldReturnTrueForValidToken() {
-        String token = jwtUtil.generateToken("admin", "ADMIN");
-        assertThat(jwtUtil.validateToken(token)).isTrue();
+    void validateToken_shouldMatchType() {
+        String accessToken = jwtUtil.generateAccessToken("admin", "ADMIN");
+        String refreshToken = jwtUtil.generateRefreshToken("admin", "ADMIN");
+
+        assertThat(jwtUtil.validateToken(accessToken, "access")).isTrue();
+        assertThat(jwtUtil.validateToken(accessToken, "refresh")).isFalse();
+        assertThat(jwtUtil.validateToken(refreshToken, "refresh")).isTrue();
+        assertThat(jwtUtil.validateToken(refreshToken, "access")).isFalse();
     }
 
     @Test
     void validateToken_shouldReturnFalseForInvalidToken() {
-        assertThat(jwtUtil.validateToken("invalid.token.here")).isFalse();
-        assertThat(jwtUtil.validateToken("")).isFalse();
+        assertThat(jwtUtil.validateToken("invalid.token.here", "access")).isFalse();
+        assertThat(jwtUtil.validateToken("", "access")).isFalse();
     }
 
     @Test
     void validateToken_shouldReturnFalseForTamperedToken() {
-        String token = jwtUtil.generateToken("admin", "ADMIN");
+        String token = jwtUtil.generateAccessToken("admin", "ADMIN");
         String tampered = token.substring(0, token.length() - 5) + "xxxxx";
-        assertThat(jwtUtil.validateToken(tampered)).isFalse();
+        assertThat(jwtUtil.validateToken(tampered, "access")).isFalse();
     }
 }

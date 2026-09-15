@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import com.example.demo.config.JwtAuthenticationFilter;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,7 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AuthController.class)
-@AutoConfigureMockMvc(addFilters = false)   // ← 加这一行
+@AutoConfigureMockMvc(addFilters = false)
 class AuthControllerTest {
 
     @Autowired
@@ -37,9 +36,6 @@ class AuthControllerTest {
     private UserRepository userRepository;
 
     @MockBean
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    @MockBean
     private AuthService authService;
 
     @MockBean
@@ -47,8 +43,6 @@ class AuthControllerTest {
 
     @MockBean
     private JwtUtil jwtUtil;
-
-    // ========== 注册测试 ==========
 
     @Test
     void register_shouldReturn201() throws Exception {
@@ -72,16 +66,15 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.message").value("注册成功"));
     }
 
-    // ========== 登录测试 ==========
-
     @Test
-    void login_shouldReturn200WithToken() throws Exception {
+    void login_shouldReturnBothTokens() throws Exception {
         User user = User.builder()
                 .id(1L).username("admin").password("ENCODED").role("ADMIN").build();
 
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("123456", "ENCODED")).thenReturn(true);
-        when(jwtUtil.generateToken("admin", "ADMIN")).thenReturn("fake.jwt.token");
+        when(jwtUtil.generateAccessToken("admin", "ADMIN")).thenReturn("fake.access.token");
+        when(jwtUtil.generateRefreshToken("admin", "ADMIN")).thenReturn("fake.refresh.token");
 
         Map<String, String> body = Map.of(
                 "username", "admin",
@@ -93,8 +86,9 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("admin"))
-                .andExpect(jsonPath("$.token").value("fake.jwt.token"))
-                .andExpect(jsonPath("$.expiresIn").value(86400));
+                .andExpect(jsonPath("$.accessToken").value("fake.access.token"))
+                .andExpect(jsonPath("$.refreshToken").value("fake.refresh.token"))
+                .andExpect(jsonPath("$.expiresIn").value(1800));
     }
 
     @Test
@@ -131,5 +125,37 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("用户名或密码错误"));
+    }
+
+    @Test
+    void refresh_shouldReturnNewTokens() throws Exception {
+        when(jwtUtil.validateToken("valid.refresh.token", "refresh")).thenReturn(true);
+        when(jwtUtil.getUsernameFromToken("valid.refresh.token")).thenReturn("admin");
+        when(jwtUtil.getRoleFromToken("valid.refresh.token")).thenReturn("ADMIN");
+        when(jwtUtil.generateAccessToken("admin", "ADMIN")).thenReturn("new.access.token");
+        when(jwtUtil.generateRefreshToken("admin", "ADMIN")).thenReturn("new.refresh.token");
+
+        Map<String, String> body = Map.of("refreshToken", "valid.refresh.token");
+
+        mockMvc.perform(post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("admin"))
+                .andExpect(jsonPath("$.accessToken").value("new.access.token"))
+                .andExpect(jsonPath("$.refreshToken").value("new.refresh.token"));
+    }
+
+    @Test
+    void refresh_shouldReturn400_whenInvalid() throws Exception {
+        when(jwtUtil.validateToken("invalid.token", "refresh")).thenReturn(false);
+
+        Map<String, String> body = Map.of("refreshToken", "invalid.token");
+
+        mockMvc.perform(post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("refreshToken 无效或已过期"));
     }
 }

@@ -51,13 +51,36 @@ public class AuthController {
             throw new RuntimeException("用户名或密码错误");
         }
 
-        // 生成真 JWT token
-        String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
+        String accessToken = jwtUtil.generateAccessToken(user.getUsername(), user.getRole());
+        String refreshToken = jwtUtil.generateRefreshToken(user.getUsername(), user.getRole());
 
         Map<String, Object> result = new HashMap<>();
         result.put("username", user.getUsername());
-        result.put("token", token);
-        result.put("expiresIn", 86400);  // 秒，对应 24 小时
+        result.put("accessToken", accessToken);
+        result.put("refreshToken", refreshToken);
+        result.put("expiresIn", 1800);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<Map<String, Object>> refresh(@RequestBody Map<String, String> body) {
+        String refreshToken = body.get("refreshToken");
+
+        if (!jwtUtil.validateToken(refreshToken, "refresh")) {
+            throw new RuntimeException("refreshToken 无效或已过期");
+        }
+
+        String username = jwtUtil.getUsernameFromToken(refreshToken);
+        String role = jwtUtil.getRoleFromToken(refreshToken);
+
+        String newAccessToken = jwtUtil.generateAccessToken(username, role);
+        String newRefreshToken = jwtUtil.generateRefreshToken(username, role);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("username", username);
+        result.put("accessToken", newAccessToken);
+        result.put("refreshToken", newRefreshToken);
+        result.put("expiresIn", 1800);
         return ResponseEntity.ok(result);
     }
 }
