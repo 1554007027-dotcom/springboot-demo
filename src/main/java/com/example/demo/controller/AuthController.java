@@ -52,7 +52,7 @@ public class AuthController {
         }
 
         // 生成真 JWT token
-        String token = jwtUtil.generateToken(user.getUsername());
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
 
         Map<String, Object> result = new HashMap<>();
         result.put("username", user.getUsername());

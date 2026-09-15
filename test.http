@@ -1,14 +1,4 @@
-### 1. 注册
-POST http://localhost:8080/api/auth/register
-Content-Type: application/json
-
-{
-  "username": "admin",
-  "email": "admin@example.com",
-  "password": "123456"
-}
-
-### 2. 登录
+### 1. admin 登录
 POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
@@ -17,9 +7,37 @@ Content-Type: application/json
   "password": "123456"
 }
 
-### 3. 不带 token 访问（应 403）
-GET http://localhost:8080/api/users
+> {%
+    client.global.set("admin_token", response.body.token);
+%}
 
-### 4. 带 token 访问（先手动替换 token）
-GET http://localhost:8080/api/users
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc4OTExMTQ4MiwiZXhwIjoxNzg5MTk3ODgyfQ.bEPaU8XuwTf-g5hDwuB-JiCehuoJ1zvWe-dFeFkM1Cnke28P6u1J45-r7zquGGCCQ5kN5lo3zMBZYukkFHQYhA"
+### 2. 注册普通用户
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "email": "user1@example.com",
+  "password": "123456"
+}
+
+### 3. 普通用户登录
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "password": "123456"
+}
+
+> {%
+    client.global.set("user_token", response.body.token);
+%}
+
+### 4. admin 删除用户（应该能进业务，返回 404 或 204）
+DELETE http://localhost:8080/api/users/999
+Authorization: Bearer {{admin_token}}
+
+### 5. 普通用户删除用户（应该 403）
+DELETE http://localhost:8080/api/users/999
+Authorization: Bearer {{user_token}}

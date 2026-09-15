@@ -26,7 +26,8 @@ public class AuthService {
         User user = User.builder()
                 .username(username)
                 .email(email)
-                .password(passwordEncoder.encode(rawPassword))  // 加密存储
+                .password(passwordEncoder.encode(rawPassword))// 加密存储
+                .role("USER")
                 .build();
 
         return userRepository.save(user);

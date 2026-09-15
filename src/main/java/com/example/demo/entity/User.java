@@ -36,6 +36,8 @@ public class User {
     @Size(min = 6, max = 100, message = "密码长度必须在6-100之间")
     @Column(nullable = false)
     private String password;
+    @Column(nullable = false)
+    private String role;   // "USER" 或 "ADMIN"
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
