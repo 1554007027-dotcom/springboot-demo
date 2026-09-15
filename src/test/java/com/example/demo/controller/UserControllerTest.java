@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import com.example.demo.config.JwtAuthenticationFilter;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -26,6 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class UserControllerTest {
 
     @Autowired
@@ -33,6 +36,9 @@ class UserControllerTest {
 
     @MockBean
     private UserService userService;
+
+    @MockBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -66,8 +72,8 @@ class UserControllerTest {
 
     @Test
     void createUser_shouldReturn201() throws Exception {
-        User input = User.builder().username("zhangsan").email("z@x.com").build();
-        User saved = User.builder().id(1L).username("zhangsan").email("z@x.com").build();
+        User input = User.builder().username("zhangsan").email("z@x.com").password("123456").build();
+        User saved = User.builder().id(1L).username("zhangsan").email("z@x.com").password("123456").build();
 
         when(userService.create(any(User.class))).thenReturn(saved);
 
@@ -107,8 +113,8 @@ class UserControllerTest {
 
     @Test
     void updateUser_shouldReturn200() throws Exception {
-        User input = User.builder().username("new").email("new@x.com").build();
-        User updated = User.builder().id(1L).username("new").email("new@x.com").build();
+        User input = User.builder().username("new").email("new@x.com").password("123456").build();
+        User updated = User.builder().id(1L).username("new").email("new@x.com").password("123456").build();
 
         when(userService.update(eq(1L), any(User.class))).thenReturn(updated);
 

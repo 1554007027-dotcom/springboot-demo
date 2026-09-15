@@ -17,16 +17,15 @@ class UserRepositoryTest {
 
     @Test
     void 保存并查询用户() {
-        // 准备数据
         User user = User.builder()
                 .username("zhangsan")
                 .email("zhangsan@example.com")
+                .password("123456")
+                .role("USER")
                 .build();
 
-        // 保存
         User saved = userRepository.save(user);
 
-        // 断言
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getUsername()).isEqualTo("zhangsan");
     }
@@ -36,6 +35,8 @@ class UserRepositoryTest {
         User user = User.builder()
                 .username("lisi")
                 .email("lisi@example.com")
+                .password("123456")
+                .role("USER")
                 .build();
         userRepository.save(user);
 
@@ -50,6 +51,8 @@ class UserRepositoryTest {
         userRepository.save(User.builder()
                 .username("wangwu")
                 .email("wangwu@example.com")
+                .password("123456")
+                .role("USER")
                 .build());
 
         assertThat(userRepository.existsByUsername("wangwu")).isTrue();
@@ -61,6 +64,8 @@ class UserRepositoryTest {
         User user = userRepository.save(User.builder()
                 .username("temp")
                 .email("temp@example.com")
+                .password("123456")
+                .role("USER")
                 .build());
 
         userRepository.deleteById(user.getId());

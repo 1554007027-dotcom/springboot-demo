@@ -17,3 +17,6 @@ spring:
 logging:
   level:
     org.hibernate.SQL: DEBUG
+jwt:
+  secret: test-secret-key-for-jwt-demo-1234567890-abcdefghij
+  expiration: 86400000
