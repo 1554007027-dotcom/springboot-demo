@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.common.Result;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.AuthService;
@@ -24,23 +25,22 @@ public class AuthController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> register(@RequestBody Map<String, String> body) {
+    public ResponseEntity<Result<Map<String, Object>>> register(@RequestBody Map<String, String> body) {
         String username = body.get("username");
         String email = body.get("email");
         String password = body.get("password");
 
         User user = authService.register(username, email, password);
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("id", user.getId());
-        result.put("username", user.getUsername());
-        result.put("email", user.getEmail());
-        result.put("message", "注册成功");
-        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+        Map<String, Object> data = new HashMap<>();
+        data.put("id", user.getId());
+        data.put("username", user.getUsername());
+        data.put("email", user.getEmail());
+        return ResponseEntity.status(HttpStatus.CREATED).body(Result.success(data));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> body) {
+    public Result<Map<String, Object>> login(@RequestBody Map<String, String> body) {
         String username = body.get("username");
         String password = body.get("password");
 
@@ -54,16 +54,16 @@ public class AuthController {
         String accessToken = jwtUtil.generateAccessToken(user.getUsername(), user.getRole());
         String refreshToken = jwtUtil.generateRefreshToken(user.getUsername(), user.getRole());
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("username", user.getUsername());
-        result.put("accessToken", accessToken);
-        result.put("refreshToken", refreshToken);
-        result.put("expiresIn", 1800);
-        return ResponseEntity.ok(result);
+        Map<String, Object> data = new HashMap<>();
+        data.put("username", user.getUsername());
+        data.put("accessToken", accessToken);
+        data.put("refreshToken", refreshToken);
+        data.put("expiresIn", 1800);
+        return Result.success(data);
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<Map<String, Object>> refresh(@RequestBody Map<String, String> body) {
+    public Result<Map<String, Object>> refresh(@RequestBody Map<String, String> body) {
         String refreshToken = body.get("refreshToken");
 
         if (!jwtUtil.validateToken(refreshToken, "refresh")) {
@@ -76,11 +76,11 @@ public class AuthController {
         String newAccessToken = jwtUtil.generateAccessToken(username, role);
         String newRefreshToken = jwtUtil.generateRefreshToken(username, role);
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("username", username);
-        result.put("accessToken", newAccessToken);
-        result.put("refreshToken", newRefreshToken);
-        result.put("expiresIn", 1800);
-        return ResponseEntity.ok(result);
+        Map<String, Object> data = new HashMap<>();
+        data.put("username", username);
+        data.put("accessToken", newAccessToken);
+        data.put("refreshToken", newRefreshToken);
+        data.put("expiresIn", 1800);
+        return Result.success(data);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.common.Result;
 import com.example.demo.entity.User;
 import com.example.demo.service.UserService;
 import jakarta.validation.Valid;
@@ -10,10 +11,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/users")
@@ -23,38 +24,37 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userService.findAll());
+    public Result<List<User>> getAllUsers() {
+        return Result.success(userService.findAll());
     }
 
     @GetMapping("/query/paged")
-    public ResponseEntity<Page<User>> getUsersPaged(
+    public Result<Page<User>> getUsersPaged(
             @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
             Pageable pageable) {
-        return ResponseEntity.ok(userService.findAllPaged(pageable));
+        return Result.success(userService.findAllPaged(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.findById(id));
+    public Result<User> getUserById(@PathVariable Long id) {
+        return Result.success(userService.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
+    public ResponseEntity<Result<User>> createUser(@Valid @RequestBody User user) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(userService.create(user));
+                .body(Result.success(userService.create(user)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id,
-                                           @Valid @RequestBody User user) {
-        return ResponseEntity.ok(userService.update(id, user));
+    public Result<User> updateUser(@PathVariable Long id,
+                                   @Valid @RequestBody User user) {
+        return Result.success(userService.update(id, user));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")   // ← 加这一行：只有 ADMIN 能删
-
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Result<Void>> deleteUser(@PathVariable Long id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }

@@ -60,10 +60,10 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.username").value("newuser"))
-                .andExpect(jsonPath("$.email").value("new@x.com"))
-                .andExpect(jsonPath("$.message").value("注册成功"));
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.username").value("newuser"))
+                .andExpect(jsonPath("$.data.email").value("new@x.com"))
+                .andExpect(jsonPath("$.message").value("success"));
     }
 
     @Test
@@ -85,10 +85,10 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("admin"))
-                .andExpect(jsonPath("$.accessToken").value("fake.access.token"))
-                .andExpect(jsonPath("$.refreshToken").value("fake.refresh.token"))
-                .andExpect(jsonPath("$.expiresIn").value(1800));
+                .andExpect(jsonPath("$.data.username").value("admin"))
+                .andExpect(jsonPath("$.data.accessToken").value("fake.access.token"))
+                .andExpect(jsonPath("$.data.refreshToken").value("fake.refresh.token"))
+                .andExpect(jsonPath("$.data.expiresIn").value(1800));
     }
 
     @Test
@@ -141,9 +141,9 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("admin"))
-                .andExpect(jsonPath("$.accessToken").value("new.access.token"))
-                .andExpect(jsonPath("$.refreshToken").value("new.refresh.token"));
+                .andExpect(jsonPath("$.data.username").value("admin"))
+                .andExpect(jsonPath("$.data.accessToken").value("new.access.token"))
+                .andExpect(jsonPath("$.data.refreshToken").value("new.refresh.token"));
     }
 
     @Test

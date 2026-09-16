@@ -53,9 +53,9 @@ class UserControllerTest {
 
         mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].username").value("zhangsan"))
-                .andExpect(jsonPath("$[1].username").value("lisi"));
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].username").value("zhangsan"))
+                .andExpect(jsonPath("$.data[1].username").value("lisi"));
     }
 
     @Test
@@ -65,9 +65,9 @@ class UserControllerTest {
 
         mockMvc.perform(get("/api/users/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.username").value("zhangsan"))
-                .andExpect(jsonPath("$.email").value("z@x.com"));
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.username").value("zhangsan"))
+                .andExpect(jsonPath("$.data.email").value("z@x.com"));
     }
 
     @Test
@@ -81,8 +81,8 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(input)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.username").value("zhangsan"));
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.username").value("zhangsan"));
 
         verify(userService, times(1)).create(any(User.class));
     }
@@ -122,8 +122,8 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(input)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("new"))
-                .andExpect(jsonPath("$.email").value("new@x.com"));
+                .andExpect(jsonPath("$.data.username").value("new"))
+                .andExpect(jsonPath("$.data.email").value("new@x.com"));
     }
 
     @Test
@@ -148,12 +148,12 @@ class UserControllerTest {
 
         mockMvc.perform(get("/api/users/query/paged?page=0&size=10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.length()").value(2))
-                .andExpect(jsonPath("$.content[0].username").value("zhangsan"))
-                .andExpect(jsonPath("$.content[1].username").value("lisi"))
-                .andExpect(jsonPath("$.totalElements").value(2))
-                .andExpect(jsonPath("$.size").value(10))
-                .andExpect(jsonPath("$.number").value(0));
+                .andExpect(jsonPath("$.data.content.length()").value(2))
+                .andExpect(jsonPath("$.data.content[0].username").value("zhangsan"))
+                .andExpect(jsonPath("$.data.content[1].username").value("lisi"))
+                .andExpect(jsonPath("$.data.totalElements").value(2))
+                .andExpect(jsonPath("$.data.size").value(10))
+                .andExpect(jsonPath("$.data.number").value(0));
     }
 
     @Test
