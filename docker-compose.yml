@@ -18,6 +18,20 @@ services:
       timeout: 3s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis-demo
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - demo-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   app:
     build: .
     container_name: demo-app
@@ -25,10 +39,14 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/demo?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 123456
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
     ports:
       - "8080:8080"
     networks:
