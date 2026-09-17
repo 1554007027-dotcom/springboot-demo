@@ -1,4 +1,3 @@
-
 package com.example.demo.exception;
 
 import com.example.demo.common.Result;
@@ -24,6 +23,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Result<Void>> handleRuntimeException(RuntimeException ex) {
+        // 限流异常返回 429
+        if (ex.getMessage() != null && ex.getMessage().contains("请求过于频繁")) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(Result.error(429, ex.getMessage()));
+        }
         return ResponseEntity.badRequest()
                 .body(Result.error(400, ex.getMessage()));
     }

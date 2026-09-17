@@ -1,29 +1,35 @@
-### 1. 登录
+### 第1次
 POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
-{
-  "username": "admin",
-  "password": "123456"
-}
+{"username":"admin","password":"123456"}
 
-> {%
-    client.global.set("access_token", response.body.data.accessToken);
-    client.global.set("refresh_token", response.body.data.refreshToken);
-%}
-
-### 2. 用 accessToken 调业务
-GET http://localhost:8080/api/users
-Authorization: Bearer {{access_token}}
-
-### 3. 用 refreshToken 调业务（应 403）
-GET http://localhost:8080/api/users
-Authorization: Bearer {{refresh_token}}
-
-### 4. 用 refreshToken 刷新
-POST http://localhost:8080/api/auth/refresh
+### 第2次
+POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
-{
-  "refreshToken": "{{refresh_token}}"
-}
+{"username":"admin","password":"123456"}
+
+### 第3次
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{"username":"admin","password":"123456"}
+
+### 第4次
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{"username":"admin","password":"123456"}
+
+### 第5次
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{"username":"admin","password":"123456"}
+
+### 第6次
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{"username":"admin","password":"123456"}
