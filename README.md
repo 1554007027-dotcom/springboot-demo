@@ -1,60 +1,41 @@
-# Demo - Spring Boot 用户管理 API
+# Demo - Spring Boot 用户管理系统（后端）
 
-基于 Spring Boot 3.2 的用户管理 RESTful API，包含 CRUD、分页、参数校验、单元测试和容器化部署。
+基于 Spring Boot 3.2 的用户管理系统后端，提供 RESTful API、JWT 认证、权限控制、缓存、限流等完整功能。
 
 ## 技术栈
 
-- Spring Boot 3.2.0
-- Java 21
-- MySQL 8.0
-- Spring Data JPA
-- springdoc-openapi 2.3.0 (Swagger)
-- JUnit 5 + Mockito
-- Docker
+- **Spring Boot 3.2** - 应用框架
+- **Java 21** - 语言版本
+- **MySQL 8.0** - 关系数据库
+- **Spring Data JPA** - ORM 框架
+- **Redis** - 缓存
+- **Spring Security + JWT** - 认证授权
+- **Bucket4j / AOP** - 接口限流
+- **springdoc-openapi** - 接口文档
+- **Lombok** - 简化代码
+- **JUnit 5 + Mockito + MockMvc** - 单元测试
+- **Docker + Docker Compose** - 容器化部署
 
-## 功能
+## 功能特性
 
-- 用户 CRUD（增删改查）
-- 分页查询
-- 参数校验
-- 全局异常处理
+- 用户 CRUD（创建、查询、更新、删除）
+- 分页查询（支持排序、分页参数）cd E:\Javacode\demo
+- 参数校验（用户名、邮箱格式）
+- 全局异常处理（统一 JSON 响应）
+- 统一响应格式（`Result<T>`）
+- JWT 双 Token 认证（access + refresh）
+- RBAC 权限控制（USER / ADMIN）
+- Redis 缓存用户查询接口
+- 登录接口限流（防暴力破解）
+- AOP 日志（自动记录每个请求）
 - Swagger UI 接口文档
-- AOP 日志
-- 22 个单元测试
-
-## 接口
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/users | 查询所有 |
-| GET | /api/users/{id} | 查询单个 |
-| GET | /api/users/query/paged | 分页 |
-| POST | /api/users | 创建 |
-| PUT | /api/users/{id} | 更新 |
-| DELETE | /api/users/{id} | 删除 |
+- 40+ 单元测试（Repository / Service / Controller）
+- Docker 多阶段构建
+- Docker Compose 一键启动
 
 ## 快速开始
 
-### 启动 MySQL
+### 1. 启动依赖服务
 
-docker run -d --name mysql-demo -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 -e MYSQL_DATABASE=demo mysql:8.0
-
-### 启动应用
-
-mvnw.cmd spring-boot:run
-
-### 访问
-
-- 接口：http://localhost:8080/api/users
-- Swagger：http://localhost:8080/swagger-ui.html
-
-## 项目结构
-
-src/main/java/com/example/demo/
-- DemoApplication.java
-- aspect/LoggingAspect.java
-- controller/UserController.java
-- entity/User.java
-- exception/GlobalExceptionHandler.java
-- repository/UserRepository.java
-- service/UserService.java
+```bash
+docker compose up -d mysql redis
