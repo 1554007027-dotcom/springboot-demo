@@ -61,6 +61,10 @@ public class UserService {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("邮箱已存在");
         }
+        // 默认角色
+        if (user.getRole() == null || user.getRole().isEmpty()) {
+            user.setRole("USER");
+        }
         return userRepository.save(user);
     }
 

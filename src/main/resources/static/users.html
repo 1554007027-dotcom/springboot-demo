@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>用户列表</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, "Microsoft YaHei", sans-serif;
+            background: #f5f7fa;
+            padding: 30px;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+        header {
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        h1 { font-size: 22px; color: #333; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-info span { color: #666; font-size: 14px; }
+        .logout-btn {
+            padding: 8px 16px;
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .toolbar {
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background: #667eea; color: #fff; }
+        .btn-primary:hover { background: #5568d3; }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-edit { background: #f39c12; color: #fff; margin-right: 5px; }
+        .btn-delete { background: #e74c3c; color: #fff; }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 14px 20px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fc;
+            color: #555;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        td { color: #333; font-size: 14px; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: #f8f9fc; }
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 14px 24px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 9999;
+        }
+        .toast.show { opacity: 1; }
+        .toast.success { background: #27ae60; }
+        .toast.error { background: #e74c3c; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            width: 400px;
+        }
+        .modal h3 { margin-bottom: 20px; color: #333; }
+        .modal .form-group { margin-bottom: 15px; }
+        .modal label { display: block; margin-bottom: 6px; color: #555; font-size: 13px; }
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+        .modal input:focus { border-color: #667eea; }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .btn-cancel { background: #ddd; color: #333; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>用户管理</h1>
+        <div class="user-info">
+            <span id="currentUser"></span>
+            <button class="logout-btn" onclick="logout()">退出登录</button>
+        </div>
+    </header>
+
+    <div class="toolbar">
+        <button class="btn btn-primary" onclick="openCreateModal()">+ 新增用户</button>
+        <button class="btn btn-primary" onclick="loadUsers()">刷新</button>
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>用户名</th>
+                <th>邮箱</th>
+                <th>角色</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody id="userTable"></tbody>
+        </table>
+        <div class="empty" id="emptyMsg" style="display:none;">暂无用户</div>
+    </div>
+</div>
+
+<!-- 新增/编辑 Modal -->
+<div class="modal-overlay" id="modal">
+    <div class="modal">
+        <h3 id="modalTitle">新增用户</h3>
+        <div class="form-group">
+            <label>用户名</label>
+            <input type="text" id="modalUsername">
+        </div>
+        <div class="form-group">
+            <label>邮箱</label>
+            <input type="email" id="modalEmail">
+        </div>
+        <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="modalPassword" placeholder="不修改留空">
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-cancel" onclick="closeModal()">取消</button>
+            <button class="btn btn-primary" onclick="saveUser()">保存</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    const API = '/api/users';
+    let editingId = null;
+
+    function getToken() {
+        return localStorage.getItem('accessToken');
+    }
+
+    function authHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getToken()
+        };
+    }
+
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast ' + type + ' show';
+        setTimeout(() => t.className = 'toast ' + type, 2000);
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login.html';
+    }
+
+    async function loadUsers() {
+        try {
+            const res = await fetch(API, { headers: authHeaders() });
+
+            if (res.status === 401 || res.status === 403) {
+                showToast('未登录或权限不足', 'error');
+                setTimeout(logout, 1000);
+                return;
+            }
+
+            const data = await res.json();
+            const users = data.data || [];
+            renderUsers(users);
+        } catch (e) {
+            showToast('加载失败：' + e.message, 'error');
+        }
+    }
+
+    function renderUsers(users) {
+        const tbody = document.getElementById('userTable');
+        const empty = document.getElementById('emptyMsg');
+
+        if (!users || users.length === 0) {
+            tbody.innerHTML = '';
+            empty.style.display = 'block';
+            return;
+        }
+
+        empty.style.display = 'none';
+        tbody.innerHTML = users.map(u => `
+            <tr>
+                <td>${u.id}</td>
+                <td>${escapeHtml(u.username)}</td>
+                <td>${escapeHtml(u.email)}</td>
+                <td>${escapeHtml(u.role || '-')}</td>
+                <td>
+                    <button class="btn-sm btn-edit" onclick="openEditModal(${u.id}, '${escapeJs(u.username)}', '${escapeJs(u.email)}')">编辑</button>
+                    <button class="btn-sm btn-delete" onclick="deleteUser(${u.id})">删除</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function escapeHtml(s) {
+        if (s == null) return '';
+        return String(s).replace(/[&<>"']/g, m => ({
+            '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+        })[m]);
+    }
+
+    function escapeJs(s) {
+        if (s == null) return '';
+        return String(s).replace(/'/g, "\\'");
+    }
+
+    function openCreateModal() {
+        editingId = null;
+        document.getElementById('modalTitle').textContent = '新增用户';
+        document.getElementById('modalUsername').value = '';
+        document.getElementById('modalEmail').value = '';
+        document.getElementById('modalPassword').value = '';
+        document.getElementById('modal').classList.add('show');
+    }
+
+    function openEditModal(id, username, email) {
+        editingId = id;
+        document.getElementById('modalTitle').textContent = '编辑用户';
+        document.getElementById('modalUsername').value = username;
+        document.getElementById('modalEmail').value = email;
+        document.getElementById('modalPassword').value = '';
+        document.getElementById('modal').classList.add('show');
+    }
+
+    function closeModal() {
+        document.getElementById('modal').classList.remove('show');
+    }
+
+    async function saveUser() {
+        const username = document.getElementById('modalUsername').value.trim();
+        const email = document.getElementById('modalEmail').value.trim();
+        const password = document.getElementById('modalPassword').value.trim();
+
+        if (!username || !email) {
+            showToast('用户名和邮箱必填', 'error');
+            return;
+        }
+
+        const body = { username, email };
+        if (password) body.password = password;
+
+        try {
+            let res;
+            if (editingId) {
+                res = await fetch(`${API}/${editingId}`, {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify(body)
+                });
+            } else {
+                if (!password) {
+                    showToast('新增用户必须填密码', 'error');
+                    return;
+                }
+                res = await fetch(API, {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify(body)
+                });
+            }
+
+            const data = await res.json();
+
+            if (data.code === 200 || res.status === 201 || res.status === 200) {
+                showToast(editingId ? '更新成功' : '创建成功');
+                closeModal();
+                loadUsers();
+            } else {
+                showToast(data.message || '操作失败', 'error');
+            }
+        } catch (e) {
+            showToast('请求失败：' + e.message, 'error');
+        }
+    }
+
+    async function deleteUser(id) {
+        if (!confirm('确定要删除这个用户吗？')) return;
+
+        try {
+            const res = await fetch(`${API}/${id}`, {
+                method: 'DELETE',
+                headers: authHeaders()
+            });
+
+            if (res.status === 204 || res.status === 200) {
+                showToast('删除成功');
+                loadUsers();
+            } else {
+                const data = await res.json().catch(() => ({}));
+                showToast(data.message || '删除失败', 'error');
+            }
+        } catch (e) {
+            showToast('请求失败：' + e.message, 'error');
+        }
+    }
+
+    // 初始化
+    (function init() {
+        const token = getToken();
+        const username = localStorage.getItem('username');
+
+        if (!token) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        document.getElementById('currentUser').textContent = '👤 ' + (username || '');
+        loadUsers();
+    })();
+</script>
+</body>
+</html>
